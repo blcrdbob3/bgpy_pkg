@@ -9,6 +9,9 @@ are cached, so the same combination always returns the same class object.
 
 from bgpy.simulation_engine import ROV
 from bgpy.simulation_engine.policies.bgp.bgp_full import BGPFull
+from bgpy.simulation_engine.policies.enforce_first_as.enforce_first_as import (
+    EnforceFirstAS,
+)
 from bgpy.simulation_engine.policies.only_to_customers import OnlyToCustomers
 
 # --- BEFORE ---
@@ -24,7 +27,7 @@ class ROVAndOTC(ROV, OnlyToCustomers):
 
 print("=== BEFORE ===")
 print("Explicit subclass required for every feature combination:")
-print(f"  class ROVAndOTC(ROV, OnlyToCustomers): pass")
+print("  class ROVAndOTC(ROV, OnlyToCustomers): pass")
 print(f"  issubclass(ROVAndOTC, ROV):              {issubclass(ROVAndOTC, ROV)}")
 print(f"  issubclass(ROVAndOTC, OnlyToCustomers):  {issubclass(ROVAndOTC, OnlyToCustomers)}")
 print()
@@ -54,10 +57,6 @@ print(f"  issubclass(..., BGPFull):         {issubclass(full, BGPFull)}")
 print()
 
 print("Three-way combination, also no subclass needed:")
-from bgpy.simulation_engine.policies.enforce_first_as.enforce_first_as import (
-    EnforceFirstAS,
-)
-
 triple = Settings.compose_policy(["ROV", "OnlyToCustomers", "Enforce-First-AS"])
 print(f"  Settings.compose_policy(['ROV', 'OnlyToCustomers', 'Enforce-First-AS'])")
 print(f"  issubclass(..., ROV):              {issubclass(triple, ROV)}")
