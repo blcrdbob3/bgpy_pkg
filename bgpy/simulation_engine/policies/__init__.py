@@ -1,5 +1,4 @@
 from .aspa import ASPA, ASPAFull, ASRA, ASRAFull, ASPAwN, ASPAwNFull
-from .mono_policy import MonoPolicy, PolicySettings
 from .bgp import BGP, BGPFull, BGPFullIgnoreInvalid, BGPFullSuppressWithdrawals
 from .bgpisec import (
     BGPiSecTransitive,
@@ -91,6 +90,4 @@ __all__ = [
     "ASPAwNFull",
     "ShortestPathPrefixASPAAttacker",
     "FirstASNStrippingPrefixASPAAttacker",
-    "MonoPolicy",
-    "PolicySettings",
 ]

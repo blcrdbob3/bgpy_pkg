@@ -12,6 +12,7 @@ from bgpy.simulation_framework import (
     SubprefixHijack,
 )
 
+
 def main():
     """Runs the defaults"""
 
