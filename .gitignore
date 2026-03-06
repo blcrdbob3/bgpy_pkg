@@ -152,3 +152,7 @@ tags
 
 # PyCharm
 .idea/
+
+# Claude Code
+.claude/
+CLAUDE.md
