@@ -60,6 +60,34 @@ The stack has three main layers, each depending on the one below it:
 
 **Engine tests use ground truth**: Tests in `engine_tests/` compare against saved outputs in `engine_test_outputs/`. Use `--overwrite` to regenerate when intentionally changing behavior.
 
+## Settings API (`bgpy/settings.py`)
+
+`Settings` is a registry/lookup class introduced on the `settings` branch as an alternative to importing policy and scenario classes directly.
+
+```python
+from bgpy.settings import Settings, PolicyConfig
+
+# Look up by name
+PolicyCls = Settings.get_policy("ROV")               # Lite variant
+PolicyCls = Settings.get_policy("ROV", full_rib=True) # Full variant
+ScenarioCls = Settings.get_scenario("SubprefixHijack")
+
+# Dynamic composition via multiple inheritance
+Combined = Settings.compose_policy(["ROV", "ASPA"])
+
+# Serializable config object
+config = PolicyConfig(features=("ROV", "ASPA"), full_rib=False)
+PolicyCls = Settings.resolve_policy(config)
+
+# Discovery
+Settings.get_policy_names()    # sorted tuple of all policy .name attributes
+Settings.get_scenario_names()  # sorted tuple of all scenario class names
+```
+
+Key caveats: Policy names use the `.name` class attribute (e.g. `"ROV"`, `"BGP Full"`). Scenario names use the Python class name (e.g. `"SubprefixHijack"`). User-defined `Scenario` subclasses defined *after* `bgpy.settings` is first imported will not appear in the scenario registry (Policy subclasses are always live via `__init_subclass__`).
+
+`compose_policy()` creates classes via `type()` with multiple inheritance; results are cached. The registry snapshot/restore pattern in `compose_policy()` prevents composed classes from shadowing real classes in `name_to_subclass_dict`.
+
 ## Extension Points
 
 - **New policy**: Subclass `Policy` (or an existing policy). It auto-registers.

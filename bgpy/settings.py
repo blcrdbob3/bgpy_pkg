@@ -29,6 +29,7 @@ from dataclasses import dataclass
 # bgpy.simulation_framework.scenarios brings in all built-in scenario classes.
 import bgpy.simulation_engine
 import bgpy.simulation_framework.scenarios  # noqa: F401
+from bgpy.simulation_engine.policies.mono_policy import MonoPolicy, PolicySettings
 from bgpy.simulation_engine.policies.policy import Policy
 from bgpy.simulation_framework.scenarios.scenario import Scenario
 
@@ -84,6 +85,29 @@ def _build_lite_to_full_map() -> dict[str, str]:
 _lite_to_full_map: dict[str, str] = _build_lite_to_full_map()
 
 _compose_cache: dict[tuple[tuple[str, ...], bool], type[Policy]] = {}
+
+# Mapping from Policy .name strings to PolicySettings flags.
+# Only policies that have a direct MonoPolicy flag equivalent are listed.
+_POLICY_NAME_TO_FLAG: dict[str, PolicySettings] = {
+    "BGP Full": PolicySettings.BGP_FULL,
+    "ROV": PolicySettings.ROV,
+    "PeerROV": PolicySettings.PEER_ROV,
+    "ASPA": PolicySettings.ASPA,
+    "ASRA": PolicySettings.ASRA,
+    "ASPAwN": PolicySettings.ASPAWN,
+    "BGPsec": PolicySettings.BGPSEC,
+    "BGP-iSec Transitive Only": PolicySettings.BGP_I_SEC_TRANSITIVE,
+    "BGP-iSec Transitive + OTC": PolicySettings.BGP_I_SEC_OTC,
+    "ProviderConeID": PolicySettings.PROVIDER_CONE_ID,
+    "BGP-iSec": PolicySettings.BGP_I_SEC,
+    "Path-End": PolicySettings.PATH_END,
+    "Peerlock Lite": PolicySettings.PEERLOCK_LITE,
+    "EdgeFilter": PolicySettings.EDGE_FILTER,
+    "Enforce-First-AS": PolicySettings.ENFORCE_FIRST_AS,
+    "OnlyToCustomers": PolicySettings.ONLY_TO_CUSTOMERS,
+}
+
+_to_mono_cache: dict[tuple[tuple[str, ...], bool], type[MonoPolicy]] = {}
 
 
 @dataclass(frozen=True)
@@ -265,3 +289,57 @@ class Settings:
     def scenario_registry() -> dict[str, type[Scenario]]:
         """Return a copy of the full scenario name-to-class registry."""
         return dict(_scenario_name_map)
+
+    @staticmethod
+    def to_mono_policy(
+        names: list[str] | tuple[str, ...],
+        *,
+        full_rib: bool = False,
+    ) -> type[MonoPolicy]:
+        """Return a MonoPolicy subclass with the specified features enabled.
+
+        Translates Policy .name strings to PolicySettings flags and builds the
+        settings tuple.  Results are cached by (tuple(names), full_rib).
+
+        Args:
+            names: Policy .name attributes to enable (e.g. ["ROV", "ASPA"]).
+                "BGP" is accepted and silently ignored (it is always the base).
+            full_rib: If True, also sets the BGP_FULL flag.
+
+        Raises:
+            ValueError: If a name has no corresponding PolicySettings flag.
+
+        Returns:
+            A MonoPolicy subclass with the corresponding flags set.
+        """
+        key = (tuple(names), full_rib)
+        if key in _to_mono_cache:
+            return _to_mono_cache[key]
+
+        settings_list = [False] * len(PolicySettings)
+
+        if full_rib:
+            settings_list[PolicySettings.BGP_FULL] = True
+
+        flag_names: list[str] = []
+        for name in names:
+            if name in ("BGP",):
+                # Base policy — no flag needed
+                continue
+            flag = _POLICY_NAME_TO_FLAG.get(name)
+            if flag is None:
+                available = sorted(_POLICY_NAME_TO_FLAG.keys())
+                raise ValueError(
+                    f"Policy name {name!r} has no MonoPolicy flag equivalent. "
+                    f"Available: {available}"
+                )
+            settings_list[flag] = True
+            flag_names.append(flag.name)
+
+        if full_rib and "BGP_FULL" not in flag_names:
+            flag_names.insert(0, "BGP_FULL")
+
+        generated_name = f"Mono[{'+'.join(flag_names)}]" if flag_names else "MonoPolicy"
+        cls = MonoPolicy.from_settings(tuple(settings_list), name=generated_name)
+        _to_mono_cache[key] = cls
+        return cls
