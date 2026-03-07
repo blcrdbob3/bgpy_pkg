@@ -20,6 +20,8 @@ Usage::
 
 from __future__ import annotations
 
+import sys
+
 # Side-effect import: triggers __init_subclass__ registration for all
 # Policy subclasses before any lookup is attempted.
 import bgpy.simulation_engine  # noqa: F401
@@ -96,12 +98,17 @@ class Settings:
         # entries for any name that bases[0] already holds. Snapshot and
         # restore to keep the registry clean.
         snapshot = {b.name: b for b in bases}
-        cls = type(
-            "_".join(n.replace(" ", "_") for n in names),
-            tuple(bases),
-            {},
-        )
+        cls_name = "_".join(n.replace(" ", "_") for n in names)
+        cls = type(cls_name, tuple(bases), {})
         Policy.name_to_subclass_dict.update(snapshot)
+
+        # Ensure pickle can find this class: set __module__ to this module
+        # and register it in the module's namespace. Without this, ABCMeta
+        # may assign __module__ = 'abc', causing PicklingError at runtime.
+        cls.__module__ = __name__
+        cls.__qualname__ = cls_name
+        cls.name = cls_name
+        setattr(sys.modules[__name__], cls_name, cls)
 
         _cache[key] = cls
         return cls

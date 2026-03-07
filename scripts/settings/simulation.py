@@ -7,7 +7,7 @@ a combination that has no pre-existing subclass in bgpy.
 from pathlib import Path
 
 from bgpy.simulation_framework import Simulation, ScenarioConfig
-from bgpy.simulation_framework.scenarios.roa_based_scenarios import SubprefixHijack
+from bgpy.simulation_framework import SubprefixHijack
 from bgpy.simulation_engine import BGP
 from bgpy.settings import Settings
 
