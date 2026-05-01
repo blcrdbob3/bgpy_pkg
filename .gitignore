@@ -1,5 +1,9 @@
 .ruff_cache/
 
+# Generated, not useful to track
+.mcp.json
+.serena
+
 # Test generates these automatically
 *guess.csv
 *guess.pickle

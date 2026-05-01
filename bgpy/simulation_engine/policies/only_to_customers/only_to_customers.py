@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from bgpy.shared.enums import Relationships as Rels
+from bgpy.shared.enums import PolicySettingsIndex, Relationships as Rels
 from bgpy.simulation_engine.policies.bgp import BGP
 
 if TYPE_CHECKING:
@@ -16,6 +16,9 @@ class OnlyToCustomers(BGP):
     def _valid_ann(self, ann: "Ann", from_rel: Rels) -> bool:
         """Returns False if from peer/customer when only_to_customers is set"""
 
+        otc_settings = self.policy_settings[PolicySettingsIndex.ONLY_TO_CUSTOMERS]
+        if not otc_settings[0]:
+            return super()._valid_ann(ann, from_rel)
         otc_valid = self._only_to_customers_valid(ann, from_rel)
         return otc_valid and super()._valid_ann(ann, from_rel)
 

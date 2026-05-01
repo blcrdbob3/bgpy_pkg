@@ -126,3 +126,21 @@ class InAdoptingASNs(YamlAbleEnum):
     TRUE = "True"
     FALSE = "False"
     ANY = "Any"
+
+
+class PolicySettingsIndex(YamlAbleEnum):
+    """Index enum for policy_settings tuple.
+
+    Each policy maps to a nested tuple of booleans in PolicySettings.
+    Order: ROV, ENFORCE_FIRST_AS, EDGE_FILTER, PEERLOCK_LITE,
+           ONLY_TO_CUSTOMERS, PATH_END, ASPA, ROST
+    """
+
+    ROV = 0
+    ENFORCE_FIRST_AS = 1
+    EDGE_FILTER = 2
+    PEERLOCK_LITE = 3
+    ONLY_TO_CUSTOMERS = 4
+    PATH_END = 5
+    ASPA = 6
+    ROST = 7

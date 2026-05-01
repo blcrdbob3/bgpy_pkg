@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from bgpy.shared.enums import Relationships
+from bgpy.shared.enums import PolicySettingsIndex, Relationships
 from bgpy.simulation_engine.policies.rov import ROV
 
 if TYPE_CHECKING:
@@ -27,6 +27,9 @@ class ASPA(ROV):
     def _valid_ann(self, ann: "Ann", from_rel: Relationships) -> bool:
         """Returns False if from peer/customer when aspa is set"""
 
+        aspa_settings = self.policy_settings[PolicySettingsIndex.ASPA]
+        if not aspa_settings[0]:
+            return super()._valid_ann(ann, from_rel)
         # Note: This first if check has to be removed if you want to implement
         # route server to RS-Client behaviour
         if not self._next_hop_valid(ann):

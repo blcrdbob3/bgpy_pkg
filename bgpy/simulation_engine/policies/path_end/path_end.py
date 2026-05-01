@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from bgpy.simulation_engine.policies.rov import ROV
 
 if TYPE_CHECKING:
-    from bgpy.shared.enums import Relationships
+    from bgpy.shared.enums import PolicySettingsIndex, Relationships
     from bgpy.simulation_engine import Announcement as Ann
 
 
@@ -15,6 +15,9 @@ class PathEnd(ROV):
     def _valid_ann(self, ann: "Ann", recv_rel: "Relationships") -> bool:
         """Returns announcement validity by checking pathend records"""
 
+        path_end_settings = self.policy_settings[PolicySettingsIndex.PATH_END]
+        if not path_end_settings[0]:
+            return super()._valid_ann(ann, recv_rel)
         origin_asn = ann.origin
         origin_as_obj = self.as_.as_graph.as_dict.get(origin_asn)
         # If the origin is deploying pathend and the path is longer than 1
